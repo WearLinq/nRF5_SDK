@@ -277,12 +277,14 @@ void app_sched_execute(void)
         event_data_size = m_queue_event_headers[event_index].event_data_size;
         event_handler   = m_queue_event_headers[event_index].handler;
 
-        event_handler(p_event_data, event_data_size);
+        //event_handler(p_event_data, event_data_size);
 
         // Event processed, now it is safe to move the queue start index,
         // so the queue entry occupied by this event can be used to store
         // a next one.
         m_queue_start_index = next_index(m_queue_start_index);
+
+        event_handler(p_event_data, event_data_size);
     }
 }
 #endif //NRF_MODULE_ENABLED(APP_SCHEDULER)
