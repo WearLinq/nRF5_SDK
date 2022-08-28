@@ -59,6 +59,8 @@
 #include "gatts_cache_manager.h"
 #include "peer_id.h"
 
+#include "sd_wrapper.h"
+
 #define MAX_CTRL_POINT_RESP_PARAM_LEN   3                           /**< Max length of the responses. */
 
 #define BLE_DFU_SERVICE_UUID            0xFE59                      /**< The 16-bit UUID of the Secure DFU Service. */
@@ -249,7 +251,7 @@ uint32_t ble_dfu_buttonless_resp_send(ble_dfu_buttonless_op_code_t op_code, ble_
     hvx_params.p_len  = &hvx_len;
     hvx_params.p_data = hvx_data;
 
-    err_code = sd_ble_gatts_hvx(m_dfu.conn_handle, &hvx_params);
+    err_code = BLE_GATTS_HVX(m_dfu.conn_handle, &hvx_params);
     if ((err_code == NRF_SUCCESS) && (hvx_len != len))
     {
         err_code = NRF_ERROR_DATA_SIZE;

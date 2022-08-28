@@ -97,7 +97,8 @@ static void timestamp_print(nrf_fprintf_ctx_t * p_ctx, uint32_t timestamp)
             uint32_t ms       = (reminder * 1000)/m_freq;
             uint32_t us       = (1000*(1000*reminder - (ms * m_freq)))/m_freq;
 
-            nrf_fprintf(p_ctx, "[%02d:%02d:%02d.%03d,%03d] ", hours, mins, seconds, ms, us);
+            //nrf_fprintf(p_ctx, "[%02d:%02d:%02d.%03d,%03d] ", hours, mins, seconds, ms, us);
+            nrf_fprintf(p_ctx, "[%02d:%02d:%02d.%03d] ", hours, mins, seconds, ms);
         }
         else
         {

@@ -59,6 +59,7 @@
 #include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
+#include "sd_wrapper.h"
 
 #define INVALID_BATTERY_LEVEL 255
 
@@ -225,7 +226,7 @@ ret_code_t ble_bas_init(ble_bas_t * p_bas, const ble_bas_init_t * p_bas_init)
 static ret_code_t battery_notification_send(ble_gatts_hvx_params_t * const p_hvx_params,
                                             uint16_t                       conn_handle)
 {
-    ret_code_t err_code = sd_ble_gatts_hvx(conn_handle, p_hvx_params);
+    ret_code_t err_code = BLE_GATTS_HVX(conn_handle, p_hvx_params);
     if (err_code == NRF_SUCCESS)
     {
         NRF_LOG_INFO("Battery notification has been sent using conn_handle: 0x%04X", conn_handle);
