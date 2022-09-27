@@ -46,6 +46,9 @@
 #include "sdk_errors.h"
 #include "nrf_sdh_ble.h"
 
+// Application includes
+#include "adc_sensors.h"
+
 #define BLE_ADV_MODES (5) /**< Total number of possible advertising modes. */
 
 
@@ -306,6 +309,8 @@ static ret_code_t set_adv_mode_fast(ble_advertising_t * const p_advertising,
                                     ble_gap_adv_params_t    * p_adv_params)
 {
     ret_code_t ret;
+
+    track_fast_advertising();
 
     p_adv_params->interval = p_advertising->adv_modes_config.ble_adv_fast_interval;
     p_adv_params->duration = p_advertising->adv_modes_config.ble_adv_fast_timeout;
