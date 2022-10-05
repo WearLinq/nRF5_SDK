@@ -45,6 +45,7 @@
 #include "nrf_log.h"
 #include "sdk_errors.h"
 #include "nrf_sdh_ble.h"
+#include "nrf_delay.h"
 
 // Application includes
 #include "adc_sensors.h"
@@ -623,10 +624,13 @@ uint32_t ble_advertising_start(ble_advertising_t * const p_advertising,
     p_advertising->adv_params.filter_policy = BLE_GAP_ADV_FP_ANY;
 
     // Set advertising parameters and events according to selected advertising mode.
+    #define BATTERY_MEAS_DUR_MS 10
     switch (p_advertising->adv_mode_current)
     {
         case BLE_ADV_MODE_DIRECTED_HIGH_DUTY:
             track_fast_adv_start(BLE_GAP_ADV_TIMEOUT_HIGH_DUTY_MAX);
+            nrf_delay_ms(BATTERY_MEAS_DUR_MS);  // wait for potential measurement to complete.
+
             ret = set_adv_mode_directed_high_duty(p_advertising, &p_advertising->adv_params);
             break;
 
@@ -637,6 +641,8 @@ uint32_t ble_advertising_start(ble_advertising_t * const p_advertising,
 
         case BLE_ADV_MODE_FAST:
             track_fast_adv_start(p_advertising->adv_modes_config.ble_adv_fast_timeout);
+            nrf_delay_ms(BATTERY_MEAS_DUR_MS);  // wait for potential measurement to complete.
+
             ret = set_adv_mode_fast(p_advertising, &p_advertising->adv_params);
             break;
 
