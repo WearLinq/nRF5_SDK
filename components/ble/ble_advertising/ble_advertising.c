@@ -45,10 +45,6 @@
 #include "nrf_log.h"
 #include "sdk_errors.h"
 #include "nrf_sdh_ble.h"
-#include "nrf_delay.h"
-
-// Application includes
-#include "adc_sensors.h"
 
 #define BLE_ADV_MODES (5) /**< Total number of possible advertising modes. */
 
@@ -145,10 +141,6 @@ static void on_terminated(ble_advertising_t * const p_advertising, ble_evt_t con
         ||p_ble_evt->evt.gap_evt.params.adv_set_terminated.reason == BLE_GAP_EVT_ADV_SET_TERMINATED_REASON_LIMIT_REACHED)
     {
         // Start advertising in the next mode.
-        if (p_advertising->adv_mode_current == BLE_ADV_MODE_FAST)
-        {
-            track_fast_adv_stop();
-        }
         ret = ble_advertising_start(p_advertising, adv_mode_next_get(p_advertising->adv_mode_current));
 
         if ((ret != NRF_SUCCESS) && (p_advertising->error_handler != NULL))
@@ -624,35 +616,25 @@ uint32_t ble_advertising_start(ble_advertising_t * const p_advertising,
     p_advertising->adv_params.filter_policy = BLE_GAP_ADV_FP_ANY;
 
     // Set advertising parameters and events according to selected advertising mode.
-    #define BATTERY_MEAS_DUR_MS 10
     switch (p_advertising->adv_mode_current)
     {
         case BLE_ADV_MODE_DIRECTED_HIGH_DUTY:
-            track_fast_adv_start(BLE_GAP_ADV_TIMEOUT_HIGH_DUTY_MAX);
-            nrf_delay_ms(BATTERY_MEAS_DUR_MS);  // wait for potential measurement to complete.
-
             ret = set_adv_mode_directed_high_duty(p_advertising, &p_advertising->adv_params);
             break;
 
         case BLE_ADV_MODE_DIRECTED:
-            track_fast_adv_stop();
             ret = set_adv_mode_directed(p_advertising, &p_advertising->adv_params);
             break;
 
         case BLE_ADV_MODE_FAST:
-            track_fast_adv_start(p_advertising->adv_modes_config.ble_adv_fast_timeout);
-            nrf_delay_ms(BATTERY_MEAS_DUR_MS);  // wait for potential measurement to complete.
-
             ret = set_adv_mode_fast(p_advertising, &p_advertising->adv_params);
             break;
 
         case BLE_ADV_MODE_SLOW:
-            track_fast_adv_stop();
             ret = set_adv_mode_slow(p_advertising, &p_advertising->adv_params);
             break;
 
         case BLE_ADV_MODE_IDLE:
-            track_fast_adv_stop();
             p_advertising->adv_evt = BLE_ADV_EVT_IDLE;
             break;
 
