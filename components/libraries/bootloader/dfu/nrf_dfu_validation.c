@@ -837,8 +837,8 @@ static bool postvalidate_app(dfu_init_command_t const * p_init, uint32_t src_add
          nrf_dfu_softdevice_invalidate();
     }
 
-    if (!NRF_DFU_DEBUG ||
-                (NRF_DFU_DEBUG && (p_init->has_is_debug == false || p_init->is_debug == false)))
+    // Always update the app_version in settings, even if the DFU
+    // package was created with --debug-mode enabled. 
     {
         s_dfu_settings.app_version = p_init->fw_version;
     }
@@ -932,12 +932,10 @@ static bool postvalidate_sd_bl(dfu_init_command_t const  * p_init,
     {
         memcpy(&s_dfu_settings.boot_validation_bootloader, &boot_validation_bl, sizeof(boot_validation_bl));
 
-        if (!NRF_DFU_DEBUG ||
-            (NRF_DFU_DEBUG && (p_init->has_is_debug == false || p_init->is_debug == false)))
+        // Always update the bootloader_version in settings, even if the DFU
+        // package was created with --debug-mode enabled. 
         {
-            // If the update contains a bootloader, update the version.
-            // Unless the update is a debug packet.
-            s_dfu_settings.bootloader_version = p_init->fw_version;
+           s_dfu_settings.bootloader_version = p_init->fw_version;
         }
     }
 
