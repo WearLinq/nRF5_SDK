@@ -254,7 +254,18 @@ static bool fw_version_ok(dfu_init_command_t const * p_init)
 #endif // NRF_DFU_SUPPORTS_EXTERNAL_APP
     else
     {
-        return  (p_init->fw_version > s_dfu_settings.bootloader_version);
+        if (p_init->fw_version > s_dfu_settings.bootloader_version)
+        {
+            return true;
+        }
+        else if (p_init->fw_version == s_dfu_settings.bootloader_version)
+        {
+            return NRF_DFU_APP_ACCEPT_SAME_VERSION;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
 
