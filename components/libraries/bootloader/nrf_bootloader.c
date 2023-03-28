@@ -59,6 +59,9 @@
 #include "app_scheduler.h"
 #include "nrf_dfu_validation.h"
 
+STATIC_ASSERT_MSG(BL_VERSION != 0, "Boot loader version (BL_VERSION) must be defined");
+#include "../application/ram_retention.h"
+
 static nrf_dfu_observer_t m_user_observer; //<! Observer callback set by the user.
 static volatile bool m_flash_write_done;
 
@@ -472,6 +475,7 @@ ret_code_t nrf_bootloader_init(nrf_dfu_observer_t observer)
             break;
 
         case ACTIVATION_SUCCESS:
+            set_dfu_state(DFU_COMPLETE);
             bootloader_reset(true);
             NRF_LOG_ERROR("Unreachable");
             return NRF_ERROR_INTERNAL; // Should not reach this.
