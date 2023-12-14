@@ -67,8 +67,9 @@ Revision: $Rev: 4351 $
 #include "sdk_config.h"
 #if !defined(RETARGET_ENABLED) || RETARGET_ENABLED == 0
 #if (defined __SES_ARM) || (defined __CROSSWORKS_ARM)
-  
+
 #include "SEGGER_RTT.h"
+#if !defined(__SEGGER_RTL_VERSION)  
 #include <stdarg.h>
 #include <stdio.h>
 #include "limits.h"
@@ -259,6 +260,7 @@ int __getchar() {
   return SEGGER_RTT_WaitKey();
 }
 
+#endif
 #endif
 #endif
 /****** End Of File *************************************************/
