@@ -90,7 +90,7 @@ static pm_peer_id_t       m_current_sc_store_peer_id;
 
 /**@brief Function for resetting the module variable(s) of the GSCM module.
  */
-static void internal_state_reset()
+static void internal_state_reset(void)
 {
     m_module_initialized       = false;
     m_current_sc_store_peer_id = PM_PEER_ID_INVALID;
@@ -185,7 +185,7 @@ void gscm_pdb_evt_handler(pm_evt_t * p_event)
 #endif
 
 
-ret_code_t gscm_init()
+ret_code_t gscm_init(void)
 {
     NRF_PM_DEBUG_CHECK(!m_module_initialized);
 

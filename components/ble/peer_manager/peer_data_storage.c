@@ -183,7 +183,7 @@ static void send_unexpected_error(pm_peer_id_t peer_id, ret_code_t err_code)
 
 // Function for deleting all data beloning to a peer.
 // These operations will be sent to FDS one at a time.
-static void peer_data_delete_process()
+static void peer_data_delete_process(void)
 {
     ret_code_t        ret;
     pm_peer_id_t      peer_id;
@@ -251,7 +251,7 @@ static ret_code_t peer_data_find(pm_peer_id_t              peer_id,
 }
 
 
-static void peer_ids_load()
+static void peer_ids_load(void)
 {
     fds_record_desc_t  record_desc;
     fds_flash_record_t record;
@@ -360,7 +360,7 @@ static void fds_evt_handler(fds_evt_t const * const p_fds_evt)
 }
 
 
-ret_code_t pds_init()
+ret_code_t pds_init(void)
 {
     ret_code_t ret;
 

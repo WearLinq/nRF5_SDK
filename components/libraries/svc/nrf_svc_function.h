@@ -68,7 +68,7 @@ extern "C" {
  * @warning The nrf_svc_func_t function prototype should not have void as parameter list as there
  *          will be 0 to 4 arguments after casting.
  */
-typedef uint32_t (*nrf_svc_func_t)();
+typedef uint32_t (*nrf_svc_func_t)(void);
 
 /** @brief Type holding the SVC number, SVCI number, and the pointer to the corresponding handler
  *         function.

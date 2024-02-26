@@ -149,7 +149,7 @@ static pdb_buffer_record_t * write_buffer_record_find_next(pm_peer_id_t peer_id,
 {
     for (uint32_t i = *p_index; i < PM_FLASH_BUFFERS; i++)
     {
-        if ((m_write_buffer_records[i].peer_id == peer_id))
+        if (m_write_buffer_records[i].peer_id == peer_id)
         {
             *p_index = i;
             return &m_write_buffer_records[i];
@@ -275,7 +275,7 @@ static void pdb_evt_send(pm_evt_t * p_event)
  *
  * @param[out] p_event  The event to dispatch.
  */
-static void internal_state_reset()
+static void internal_state_reset(void)
 {
     for (uint32_t i = 0; i < PM_FLASH_BUFFERS; i++)
     {
@@ -528,7 +528,7 @@ void pdb_pds_evt_handler(pm_evt_t * p_event)
 }
 
 
-ret_code_t pdb_init()
+ret_code_t pdb_init(void)
 {
     ret_code_t err_code;
 

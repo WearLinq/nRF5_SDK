@@ -176,7 +176,7 @@ static void record_set_disconnected(uint16_t conn_handle)
 /**@brief Function for invalidating records with a @ref BLE_CONN_STATUS_DISCONNECTED
  *        connection status
  */
-static void record_purge_disconnected()
+static void record_purge_disconnected(void)
 {
     nrf_atflags_t                     disconnected_flags = ~m_bcs.flags.connected_flags;
     ble_conn_state_conn_handle_list_t disconnected_list;

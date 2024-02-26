@@ -526,7 +526,7 @@ nrfx_err_t nrfx_saadc_buffer_convert(nrf_saadc_value_t * p_buffer, uint16_t size
 }
 
 
-nrfx_err_t nrfx_saadc_sample()
+nrfx_err_t nrfx_saadc_sample(void)
 {
     NRFX_ASSERT(m_cb.state != NRFX_DRV_STATE_UNINITIALIZED);
 
@@ -549,7 +549,7 @@ nrfx_err_t nrfx_saadc_sample()
 }
 
 
-nrfx_err_t nrfx_saadc_calibrate_offset()
+nrfx_err_t nrfx_saadc_calibrate_offset(void)
 {
     NRFX_ASSERT(m_cb.state != NRFX_DRV_STATE_UNINITIALIZED);
 

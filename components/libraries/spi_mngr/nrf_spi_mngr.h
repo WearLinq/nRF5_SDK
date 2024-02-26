@@ -51,7 +51,11 @@ extern "C" {
 
 /*lint -save -e491*/
 #ifndef NRF_SPI_MNGR_BUFFERS_IN_RAM
-  #define NRF_SPI_MNGR_BUFFERS_IN_RAM defined(SPIM_PRESENT)
+  #if defined(SPIM_PRESENT)
+    #define NRF_SPI_MNGR_BUFFERS_IN_RAM 1
+  #else
+    #define NRF_SPI_MNGR_BUFFERS_IN_RAM 0
+  #endif
 #endif
 
 #if NRF_SPI_MNGR_BUFFERS_IN_RAM

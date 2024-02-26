@@ -207,7 +207,7 @@ __STATIC_INLINE void group_allocated_clr(nrf_ppi_channel_group_t group)
 /**
  * @brief Clear all allocated groups.
  */
-__STATIC_INLINE void group_allocated_clr_all()
+__STATIC_INLINE void group_allocated_clr_all(void)
 {
     m_groups_allocated &= ~NRFX_PPI_ALL_APP_GROUPS_MASK;
 }

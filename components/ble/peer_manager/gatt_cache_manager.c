@@ -99,7 +99,7 @@ static ble_conn_state_user_flag_id_t  m_flag_car_value_queried;       /**< Flag 
  *
  * @param[out]  The instance to reset.
  */
-static void internal_state_reset()
+static void internal_state_reset(void)
 {
     m_module_initialized = false;
 }
@@ -610,7 +610,7 @@ void gcm_pdb_evt_handler(pm_evt_t * p_event)
 }
 
 
-ret_code_t gcm_init()
+ret_code_t gcm_init(void)
 {
     NRF_PM_DEBUG_CHECK(!m_module_initialized);
 

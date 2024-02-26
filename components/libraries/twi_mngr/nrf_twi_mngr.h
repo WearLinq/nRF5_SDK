@@ -73,7 +73,7 @@ extern "C" {
  * @note  For TWI peripheral array can be const, for TWIM array has to be located in RAM.
  */
 #if NRF_TWI_MNGR_BUFFERS_IN_RAM
-  #define NRF_TWI_MNGR_BUFFER_LOC_IND
+  #define NRF_TWI_MNGR_BUFFER_LOC_IND 
 #else
   #define NRF_TWI_MNGR_BUFFER_LOC_IND const
 #endif

@@ -102,7 +102,7 @@ static uint32_t set_adv_name(nrf_dfu_adv_name_t * p_adv_name)
 
 /**@brief Function for entering the bootloader.
  */
-static uint32_t enter_bootloader()
+static uint32_t enter_bootloader(void)
 {
     uint32_t err_code;
 
