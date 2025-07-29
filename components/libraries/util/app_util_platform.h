@@ -153,6 +153,7 @@ typedef enum
 #elif defined   ( __GNUC__ )
 #define PACKED __attribute__((packed))
 #define PACKED_STRUCT struct PACKED
+#define PACKED_UNION union PACKED
 #elif defined (__ICCARM__)
 #define PACKED_STRUCT __packed struct
 #endif
