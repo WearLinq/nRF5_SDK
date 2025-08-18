@@ -49,16 +49,6 @@
 #include "nrf_sdm.h"
 #endif
 
-// Helper: get filename from path (supports '/' and '\\')
-static const char *basename_cstr(const char *path)
-{
-    if (!path) return "(null)";
-    const char *s1 = strrchr(path, '/');
-    const char *s2 = strrchr(path, '\\');
-    const char *s  = (s1 > s2 ? s1 : s2);
-    return s ? (s + 1) : path;
-}
-
 #define LOG_BLANK()        NRF_LOG_ERROR(" ")
 
 #define LOG_BLOCK_BEGIN()  do {                          \
@@ -98,7 +88,7 @@ void my_app_error_fault_printer(uint32_t id, uint32_t pc, uint32_t info)
         {
             const assert_info_t *p = (const assert_info_t *)info;
             LOG_KV("Type", "SDK ASSERT");
-            LOG_KV("File", "%s", basename_cstr(p ? (const char*)p->p_file_name : NULL));
+            LOG_KV("File", "%s", p ? (const char*)p->p_file_name : NULL);
             LOG_KV("Line", "%u", p ? (unsigned)p->line_num : 0u);
             LOG_KV("PC",   "0x%08X", (unsigned)pc);
         } break;
@@ -110,7 +100,7 @@ void my_app_error_fault_printer(uint32_t id, uint32_t pc, uint32_t info)
             LOG_KV("Code", "%d [%s]",
                    p ? (int)p->err_code : 0,
                    p ? nrf_strerror_get(p->err_code) : "unknown");
-            LOG_KV("File", "%s", basename_cstr(p ? (const char*)p->p_file_name : NULL));
+            LOG_KV("File", "%s", p ? (const char*)p->p_file_name : NULL);
             LOG_KV("Line", "%u", p ? (unsigned)p->line_num : 0u);
             LOG_KV("PC",   "0x%08X", (unsigned)pc);
         } break;
