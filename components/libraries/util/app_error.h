@@ -151,7 +151,7 @@ void app_error_log_handle(uint32_t id, uint32_t pc, uint32_t info);
 #define APP_ERROR_HANDLER(ERR_CODE)                                    \
     do                                                                 \
     {                                                                  \
-        app_error_handler_bare((ERR_CODE));                            \
+        app_error_handler((ERR_CODE), __LINE__, (uint8_t*) __FILE__);  \
     } while (0)
 #endif
 /**@brief Macro for calling error handler function if supplied error code any other than NRF_SUCCESS.

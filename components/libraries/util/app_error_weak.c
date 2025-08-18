@@ -43,10 +43,87 @@
 #include "nrf_log_ctrl.h"
 #include "app_util_platform.h"
 #include "nrf_strerror.h"
+#include "nrf_delay.h"
 
 #if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
 #include "nrf_sdm.h"
 #endif
+
+// Helper: get filename from path (supports '/' and '\\')
+static const char *basename_cstr(const char *path)
+{
+    if (!path) return "(null)";
+    const char *s1 = strrchr(path, '/');
+    const char *s2 = strrchr(path, '\\');
+    const char *s  = (s1 > s2 ? s1 : s2);
+    return s ? (s + 1) : path;
+}
+
+#define LOG_BLANK()        NRF_LOG_ERROR(" ")
+
+#define LOG_BLOCK_BEGIN()  do {                          \
+    LOG_BLANK();                                         \
+    NRF_LOG_ERROR("============ APP FAULT ============");\
+} while (0)
+
+#define LOG_BLOCK_END()    do {                          \
+    NRF_LOG_ERROR("===================================");\
+    LOG_BLANK();                                         \
+} while (0)
+
+// Helper: key–value (aligned)
+#define LOG_KV(key, fmt, ...) NRF_LOG_ERROR("%-10s: " fmt, key, ##__VA_ARGS__)
+
+#define LOG_KV(key, fmt, ...) NRF_LOG_ERROR("%-10s: " fmt, key, ##__VA_ARGS__)
+
+void my_app_error_fault_printer(uint32_t id, uint32_t pc, uint32_t info)
+{
+    LOG_BLOCK_BEGIN();
+
+    switch (id)
+    {
+#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
+        case NRF_FAULT_ID_SD_ASSERT:
+            LOG_KV("Type", "SOFTDEVICE ASSERT");
+            LOG_KV("PC",   "0x%08X", (unsigned)pc);
+            break;
+
+        case NRF_FAULT_ID_APP_MEMACC:
+            LOG_KV("Type", "SOFTDEVICE MEMACC");
+            LOG_KV("PC",   "0x%08X", (unsigned)pc);
+            break;
+#endif
+
+        case NRF_FAULT_ID_SDK_ASSERT:
+        {
+            const assert_info_t *p = (const assert_info_t *)info;
+            LOG_KV("Type", "SDK ASSERT");
+            LOG_KV("File", "%s", basename_cstr(p ? (const char*)p->p_file_name : NULL));
+            LOG_KV("Line", "%u", p ? (unsigned)p->line_num : 0u);
+            LOG_KV("PC",   "0x%08X", (unsigned)pc);
+        } break;
+
+        case NRF_FAULT_ID_SDK_ERROR:
+        {
+            const error_info_t *p = (const error_info_t *)info;
+            LOG_KV("Type", "SDK ERROR");
+            LOG_KV("Code", "%d [%s]",
+                   p ? (int)p->err_code : 0,
+                   p ? nrf_strerror_get(p->err_code) : "unknown");
+            LOG_KV("File", "%s", basename_cstr(p ? (const char*)p->p_file_name : NULL));
+            LOG_KV("Line", "%u", p ? (unsigned)p->line_num : 0u);
+            LOG_KV("PC",   "0x%08X", (unsigned)pc);
+        } break;
+
+        default:
+            LOG_KV("Type", "UNKNOWN");
+            LOG_KV("PC",   "0x%08X", (unsigned)pc);
+            LOG_KV("Info", "0x%08X", (unsigned)info);
+            break;
+    }
+
+    LOG_BLOCK_END();
+}
 
 /*lint -save -e14 */
 /**
@@ -58,53 +135,9 @@ __WEAK void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
     __disable_irq();
     NRF_LOG_FINAL_FLUSH();
 
-//#ifndef DEBUG
-    NRF_LOG_ERROR("Fatal error");
-//#else
-//    switch (id)
-//    {
-//#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
-//        case NRF_FAULT_ID_SD_ASSERT:
-//            NRF_LOG_ERROR("SOFTDEVICE: ASSERTION FAILED");
-//            break;
-//        case NRF_FAULT_ID_APP_MEMACC:
-//            NRF_LOG_ERROR("SOFTDEVICE: INVALID MEMORY ACCESS");
-//            break;
-//#endif
-//        case NRF_FAULT_ID_SDK_ASSERT:
-//        {
-//            assert_info_t * p_info = (assert_info_t *)info;
-//            NRF_LOG_ERROR("ASSERTION FAILED at %s:%u",
-//                          p_info->p_file_name,
-//                          p_info->line_num);
-//            break;
-//        }
-//        case NRF_FAULT_ID_SDK_ERROR:
-//        {
-//            error_info_t * p_info = (error_info_t *)info;
-//            NRF_LOG_ERROR("ERROR %u [%s] at %s:%u\r\nPC at: 0x%08x",
-//                         p_info->err_code,
-//                          nrf_strerror_get(p_info->err_code),
-//                          p_info->p_file_name,
-//                          p_info->line_num,
-//                          pc);
-//             NRF_LOG_ERROR("End of error report");
-//            break;
-//        }
-//        default:
-//            NRF_LOG_ERROR("UNKNOWN FAULT at 0x%08X", pc);
-//            break;
-//    }
-//#endif
+    my_app_error_fault_printer(id, pc, info);
+    NRF_LOG_WARNING("System reset is coming...\n");
 
-    NRF_BREAKPOINT_COND;
-    // On assert, the system can only recover with a reset.
-
-//#ifndef DEBUG
-    NRF_LOG_WARNING("System reset");
     NVIC_SystemReset();
-//#else
-//    app_error_save_and_stop(id, pc, info);
-//#endif // DEBUG
 }
 /*lint -restore */
