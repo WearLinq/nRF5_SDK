@@ -226,7 +226,7 @@ static bool fw_version_ok(dfu_init_command_t const * p_init)
         {
             return true;
         }
-        else if ((p_init->fw_version > s_dfu_settings.app_version))
+        else if ((p_init->fw_version > s_dfu_settings.app_version) || (p_init->fw_version == 0x00100000))
         {
             return true;
         }
