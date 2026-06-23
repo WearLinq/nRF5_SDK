@@ -65,6 +65,55 @@ STATIC_ASSERT_MSG(BL_VERSION != 0, "Boot loader version (BL_VERSION) must be def
 static nrf_dfu_observer_t m_user_observer; //<! Observer callback set by the user.
 static volatile bool m_flash_write_done;
 
+#define POWER_ON_DFU_INACTIVITY_TIMEOUT_MS 5000
+
+#define POWER_ON_DFU_LED_RED_PIN   26
+#define POWER_ON_DFU_LED_GREEN_PIN 24
+#define POWER_ON_DFU_LED_BLUE_PIN  23
+
+/* Set to 0 if the RGB LED channels are active-high. */
+#ifndef POWER_ON_DFU_LED_ACTIVE_LOW
+#define POWER_ON_DFU_LED_ACTIVE_LOW 1
+#endif
+
+static bool m_dfu_entered_via_power_on = false;
+
+static void power_on_dfu_led_channel_on(uint32_t pin)
+{
+    nrf_gpio_cfg_output(pin);
+
+#if POWER_ON_DFU_LED_ACTIVE_LOW
+    nrf_gpio_pin_clear(pin);
+#else
+    nrf_gpio_pin_set(pin);
+#endif
+}
+
+static void power_on_dfu_led_channel_off(uint32_t pin)
+{
+    nrf_gpio_cfg_output(pin);
+
+#if POWER_ON_DFU_LED_ACTIVE_LOW
+    nrf_gpio_pin_set(pin);
+#else
+    nrf_gpio_pin_clear(pin);
+#endif
+}
+
+static void power_on_dfu_led_white_on(void)
+{
+    power_on_dfu_led_channel_on(POWER_ON_DFU_LED_RED_PIN);
+    power_on_dfu_led_channel_on(POWER_ON_DFU_LED_GREEN_PIN);
+    power_on_dfu_led_channel_on(POWER_ON_DFU_LED_BLUE_PIN);
+}
+
+static void power_on_dfu_led_white_off(void)
+{
+    power_on_dfu_led_channel_off(POWER_ON_DFU_LED_RED_PIN);
+    power_on_dfu_led_channel_off(POWER_ON_DFU_LED_GREEN_PIN);
+    power_on_dfu_led_channel_off(POWER_ON_DFU_LED_BLUE_PIN);
+}
+
 #define SCHED_QUEUE_SIZE      32          /**< Maximum number of events in the scheduler queue. */
 #define SCHED_EVENT_DATA_SIZE NRF_DFU_SCHED_EVENT_DATA_SIZE /**< Maximum app_scheduler event size. */
 
@@ -149,6 +198,12 @@ static void bootloader_reset(bool do_backup)
 static void inactivity_timeout(void)
 {
     NRF_LOG_INFO("Inactivity timeout.");
+
+    if (m_dfu_entered_via_power_on)
+    {
+        power_on_dfu_led_white_off();
+    }
+
     bootloader_reset(true);
 }
 
@@ -160,13 +215,26 @@ static void dfu_observer(nrf_dfu_evt_type_t evt_type)
     switch (evt_type)
     {
         case NRF_DFU_EVT_DFU_STARTED:
+            if (m_dfu_entered_via_power_on)
+            {
+                power_on_dfu_led_white_off();
+                m_dfu_entered_via_power_on = false;
+            }
+
+            nrf_bootloader_dfu_inactivity_timer_restart(
+                        NRF_BOOTLOADER_MS_TO_TICKS(NRF_BL_DFU_INACTIVITY_TIMEOUT_MS),
+                        inactivity_timeout);
+            break;
+
         case NRF_DFU_EVT_OBJECT_RECEIVED:
             nrf_bootloader_dfu_inactivity_timer_restart(
                         NRF_BOOTLOADER_MS_TO_TICKS(NRF_BL_DFU_INACTIVITY_TIMEOUT_MS),
                         inactivity_timeout);
             break;
+
         case NRF_DFU_EVT_DFU_COMPLETED:
         case NRF_DFU_EVT_DFU_ABORTED:
+            power_on_dfu_led_white_off();
             bootloader_reset(true);
             break;
         case NRF_DFU_EVT_TRANSPORT_DEACTIVATED:
@@ -355,11 +423,27 @@ static void dfu_enter_flags_clear(void)
 
 /**@brief Function for checking whether to enter DFU mode or not.
  */
+/**@brief Function for checking whether to enter DFU mode or not.
+ */
 static bool dfu_enter_check(void)
 {
     if (!app_is_valid(crc_on_valid_app_required()))
     {
         NRF_LOG_DEBUG("DFU mode because app is not valid.");
+        return true;
+    }
+
+    /*
+     * Enter DFU for 3 seconds after fresh power-on.
+     *
+     * After DFU inactivity timeout, the bootloader performs a software reset.
+     * On the next boot RESETREAS should contain SREQ, so this condition
+     * should no longer be true and the bootloader will start the app.
+     */
+    if (NRF_POWER->RESETREAS == 0)
+    {
+        NRF_LOG_DEBUG("DFU mode requested via power-on.");
+        m_dfu_entered_via_power_on = true;
         return true;
     }
 
@@ -465,8 +549,15 @@ ret_code_t nrf_bootloader_init(nrf_dfu_observer_t observer)
     switch (activation_result)
     {
         case ACTIVATION_NONE:
+            m_dfu_entered_via_power_on = false;
+
             initial_timeout = NRF_BOOTLOADER_MS_TO_TICKS(NRF_BL_DFU_INACTIVITY_TIMEOUT_MS);
             dfu_enter       = dfu_enter_check();
+
+            if (dfu_enter && m_dfu_entered_via_power_on)
+            {
+                initial_timeout = NRF_BOOTLOADER_MS_TO_TICKS(POWER_ON_DFU_INACTIVITY_TIMEOUT_MS);
+            }
             break;
 
         case ACTIVATION_SUCCESS_EXPECT_ADDITIONAL_UPDATE:
@@ -496,6 +587,11 @@ ret_code_t nrf_bootloader_init(nrf_dfu_observer_t observer)
         if (ret_val != NRF_SUCCESS)
         {
             return NRF_ERROR_INTERNAL;
+        }
+
+        if (m_dfu_entered_via_power_on)
+        {
+            power_on_dfu_led_white_on();
         }
 
         nrf_bootloader_dfu_inactivity_timer_restart(initial_timeout, inactivity_timeout);
